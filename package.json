@@ -6,9 +6,9 @@
     "node": "24.x"
   },
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "vinext dev",
+    "build": "vinext build",
+    "start": "vinext start",
     "lint": "eslint .",
     "test": "node tests.js && node --test tests/*.test.mjs",
     "create-admin": "node --env-file=.env.local scripts/create-admin.mjs"
@@ -22,11 +22,19 @@
     "zod": "4.5.4"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "1.37.1",
+    "@vitejs/plugin-react": "6.0.2",
+    "@vitejs/plugin-rsc": "0.5.26",
     "@types/node": "26.5.0",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.7",
     "eslint": "9.39.5",
     "eslint-config-next": "16.3.4",
-    "typescript": "6.0.3"
-  }
+    "react-server-dom-webpack": "19.2.8",
+    "typescript": "6.0.3",
+    "vinext": "0.0.50",
+    "vite": "8.0.13",
+    "wrangler": "4.92.0"
+  },
+  "type": "module"
 }
