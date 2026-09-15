@@ -384,3 +384,32 @@ tr:last-child td { border-bottom: 0; }
 @media (max-width:900px) { .landing-nav nav>a:not(.nav-cta){display:none}.landing-hero{grid-template-columns:1fr;align-content:end;padding-top:140px}.hero-structure{display:none}.hero-signal{top:95px}.manifesto-section{grid-template-columns:50px 1fr}.manifesto-note{grid-column:2;max-width:520px;margin-top:14px}.section-heading{align-items:start;flex-direction:column}.phase-list{grid-template-columns:1fr}.phase-card{min-height:300px;border-right:0;border-bottom:1px solid #44453e}.phase-card:last-child{border-bottom:0}.phase-card h3{margin-top:70px}.discipline-section{grid-template-columns:1fr}.discipline-intro .section-index{margin-bottom:55px} }
 @media (max-width:560px) { .landing-nav{width:calc(100% - 32px);padding-top:16px}.landing-mark span:last-child{display:none}.landing-nav nav{gap:10px}.nav-cta{padding:10px 12px}.landing-hero{min-height:760px;padding:140px 20px 54px}.landing-hero h1{font-size:clamp(58px,19vw,86px)}.hero-signal{right:20px}.hero-actions{align-items:flex-start;flex-direction:column;gap:17px}.hero-scroll{display:none}.manifesto-section{grid-template-columns:1fr}.manifesto-note{grid-column:1}.section-heading{gap:28px;margin-bottom:45px}.phase-card{padding-inline:22px}.discipline-row{grid-template-columns:30px 1fr}.discipline-row p{grid-column:2}.landing-footer{align-items:flex-start;flex-direction:column} }
 @media (prefers-reduced-motion:reduce) { .structure-bar{animation:none} }
+
+/* Landing page: aligned to the tracker palette and training UI. */
+.landing-page { --land-bg:var(--bg); --land-surface:var(--surface); --land-surface-2:var(--surface-2); --land-line:var(--line); --land-paper:var(--text); --land-ink:var(--bg); --land-accent:var(--orange); color:var(--text); background:var(--bg); }
+.landing-nav { border-bottom-color:var(--line); background:rgba(11,15,20,.84); backdrop-filter:blur(14px); }
+.landing-mark span:first-child { color:var(--bg); background:var(--orange); }
+.landing-nav nav>a:not(.nav-cta), .landing-text-link, .hero-lede { color:var(--muted)!important; }
+.landing-nav nav>a:not(.nav-cta):hover, .landing-text-link:hover { color:var(--text)!important; }
+.nav-cta { border-color:#1e6a8c; color:#9bdcfa!important; background:#12455c; }
+.nav-cta:hover { color:var(--bg)!important; background:var(--blue); }
+.landing-hero { background:linear-gradient(90deg,rgba(41,169,224,.09) 1px,transparent 1px) 0 0/8.333vw 100%,radial-gradient(circle at 76% 36%,rgba(41,169,224,.16),transparent 26%),radial-gradient(circle at 14% 84%,rgba(242,107,33,.13),transparent 29%),var(--bg); }
+.landing-hero::after { border-color:rgba(41,169,224,.58); box-shadow:0 0 0 7vw rgba(41,169,224,.07),0 0 0 14vw rgba(242,107,33,.035); }
+.landing-kicker { color:var(--blue); }
+.landing-hero h1 em { color:transparent; -webkit-text-stroke-color:var(--blue); }
+.landing-button { color:var(--bg)!important; background:var(--orange); }
+.landing-button:hover { background:#ff7b35; }
+.landing-text-link { border-bottom-color:#365364; }
+.hero-signal span:first-child { color:var(--orange); }
+.hero-signal, .structure-label, .structure-caption, .hero-scroll { color:var(--muted); }
+.structure-grid { border-color:var(--line); background:rgba(20,27,35,.78); }
+.structure-bar { background:var(--blue); }.bar-one { background:var(--text); }.bar-two { background:var(--orange); }.bar-three { background:var(--blue); }
+.manifesto-section { color:var(--text); background:var(--surface); }
+.manifesto-section .landing-kicker, .section-index { color:var(--blue); }
+.manifesto-note { border-left-color:var(--orange); color:#b7c1cb; }
+.system-section { background:var(--bg); }
+.section-heading>p, .phase-card p { color:var(--muted); }
+.phase-list { border-color:var(--line); }.phase-card { background:var(--surface); border-right-color:var(--line); }.phase-meta { color:var(--muted); }.phase-line { background:var(--orange); }.phase-card:hover { background:var(--surface-2); }.phase-card:hover h3 { color:var(--blue); }
+.discipline-section { color:var(--text); background:var(--surface-2); }.discipline-intro .landing-kicker { color:var(--orange); }.discipline-list { border-top-color:var(--line); }.discipline-row { border-bottom-color:var(--line); }.discipline-row>span, .discipline-row p { color:var(--muted); }
+.landing-close { color:var(--text); background:#10394d; }.landing-close .landing-kicker { color:#9bdcfa; }.landing-close h2 em { -webkit-text-stroke-color:var(--orange); }.landing-button.light { color:var(--bg)!important; background:var(--orange); }.close-stamp { color:rgba(41,169,224,.13); }
+.landing-footer { color:var(--muted); background:#080b0f; }

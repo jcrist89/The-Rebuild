@@ -24,9 +24,9 @@ export async function generateMetadata(): Promise<Metadata> {
       url: origin,
       title: "The Reacher Build",
       description: "Build the frame. Earn the presence. A complete 36-week physical rebuild.",
-      images: [{ url: `${origin}/og.png`, width: 1200, height: 630, alt: "The Reacher Build — Build the frame. Earn the presence." }],
+      images: [{ url: `${origin}/og-v2.png`, width: 1728, height: 907, alt: "The Reacher Build — 36 weeks. One complete rebuild." }],
     },
-    twitter: { card: "summary_large_image", title: "The Reacher Build", description: "Build the frame. Earn the presence.", images: [`${origin}/og.png`] },
+    twitter: { card: "summary_large_image", title: "The Reacher Build", description: "Build the frame. Earn the presence.", images: [`${origin}/og-v2.png`] },
   };
 }
 
