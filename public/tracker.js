@@ -76,6 +76,8 @@
   let state = freshState();
   let tab = "today";
   let sheetContext = null;
+  let sheetCompletedSets = new Set();
+  let sheetSetEntryTimers = new Map();
   let toastTimer = null;
   let remoteSyncTimer = null;
   let remoteSyncReady = false;
@@ -510,8 +512,8 @@
     const rows = Array.from({ length: exercise.sets }, (_, index) => {
       const set = current?.sets?.[index] || {};
       return `<div class="set-row"><div class="label" style="padding-bottom:11px">Set ${index + 1}</div>
-        <div class="field"><label class="label" for="setWeight${index}">Weight</label><input class="input set-weight" id="setWeight${index}" type="number" min="0" step="0.5" value="${set.weight ?? suggestion.weight ?? ""}" inputmode="decimal"></div>
-        <div class="field"><label class="label" for="setReps${index}">${unitLabel}</label><input class="input set-reps" id="setReps${index}" type="number" min="0" step="1" value="${set.reps ?? ""}" inputmode="numeric"></div>
+        <div class="field"><label class="label" for="setWeight${index}">Weight</label><input class="input set-weight" id="setWeight${index}" data-set-index="${index}" type="number" min="0" step="0.5" value="${set.weight ?? suggestion.weight ?? ""}" inputmode="decimal"></div>
+        <div class="field"><label class="label" for="setReps${index}">${unitLabel}</label><input class="input set-reps" id="setReps${index}" data-set-index="${index}" type="number" min="0" step="1" value="${set.reps ?? ""}" inputmode="numeric"></div>
         <div class="field"><label class="label" for="setRpe${index}">RPE</label><input class="input set-rpe" id="setRpe${index}" type="number" min="1" max="10" step="0.5" value="${set.rpe ?? ""}" inputmode="decimal"></div></div>`;
     }).join("");
     $("sheetBody").innerHTML = `<h2 id="sheetTitle">${esc(exercise.name)}</h2>
@@ -525,6 +527,28 @@
       <div class="button-row" style="margin-top:15px"><button class="button secondary" data-action="close-sheet">Cancel</button><button class="button" data-action="save-exercise">Save sets</button></div>
       ${current ? `<button class="button danger small" style="margin-top:9px" data-action="delete-exercise-log">Delete this log</button>` : ""}`;
     $("actualExercise").addEventListener("change", (event) => $("customExerciseBox").classList.toggle("hidden", event.target.value !== "__custom"));
+    clearSheetEntryTimers();
+    sheetCompletedSets = new Set((current?.sets || []).flatMap((set, index) => L.setEntryComplete(set.weight, set.reps) ? [index] : []));
+    const prescribedRest = L.restSeconds(exercise.rest);
+    document.querySelectorAll(".set-weight, .set-reps").forEach((input) => input.addEventListener("input", () => {
+      const index = Number(input.dataset.setIndex);
+      const weight = $(`setWeight${index}`).value;
+      const reps = $(`setReps${index}`).value;
+      clearTimeout(sheetSetEntryTimers.get(index));
+      sheetSetEntryTimers.delete(index);
+      if (!L.setEntryComplete(weight, reps)) {
+        sheetCompletedSets.delete(index);
+        return;
+      }
+      if (sheetCompletedSets.has(index)) return;
+      const pending = setTimeout(() => {
+        if (!sheetContext || !L.setEntryComplete($(`setWeight${index}`)?.value, $(`setReps${index}`)?.value)) return;
+        sheetCompletedSets.add(index);
+        sheetSetEntryTimers.delete(index);
+        startRestTimer(prescribedRest);
+      }, 500);
+      sheetSetEntryTimers.set(index, pending);
+    }));
     $("scrim").classList.add("on");
     $("sheet").classList.add("on");
     $("sheet").removeAttribute("inert");
@@ -534,12 +558,18 @@
   }
 
   function closeSheet() {
+    clearSheetEntryTimers();
     $("scrim").classList.remove("on");
     $("sheet").classList.remove("on");
     $("sheet").setAttribute("aria-hidden", "true");
     $("sheet").setAttribute("inert", "");
     $("appShell").removeAttribute("inert");
     sheetContext = null;
+  }
+
+  function clearSheetEntryTimers() {
+    sheetSetEntryTimers.forEach((timer) => clearTimeout(timer));
+    sheetSetEntryTimers.clear();
   }
 
   function saveExercise() {
@@ -557,9 +587,7 @@
     state.substitutions[exercise.id] = actualName;
     state.logs = state.logs.filter((log) => !(Number(log.week) === state.program.currentWeek && log.workoutId === workout.id && log.exerciseId === exercise.id));
     state.logs.push({ week: state.program.currentWeek, phase: phaseNumber(), workoutId: workout.id, exerciseId: exercise.id, actualName, date: L.localISO(), savedAt: Date.now(), sets });
-    const rest = L.restSeconds(exercise.rest);
-    startRestTimer(rest, false);
-    saveState(`Sets saved — ${rest}-second rest started`);
+    saveState("Sets saved");
     closeSheet();
     refresh();
   }

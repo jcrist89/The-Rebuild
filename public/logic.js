@@ -127,6 +127,15 @@
     return clamp(Math.round(seconds), 15, 600);
   }
 
+  function setEntryComplete(weightValue, repsValue) {
+    const weightText = String(weightValue ?? "").trim();
+    const repsText = String(repsValue ?? "").trim();
+    if (!weightText || !repsText) return false;
+    const weight = Number(weightText);
+    const reps = Number(repsText);
+    return Number.isFinite(weight) && weight >= 0 && Number.isFinite(reps) && reps > 0;
+  }
+
   function formatTimer(milliseconds, showHours) {
     const totalSeconds = Math.max(0, Math.floor(Number(milliseconds) / 1000) || 0);
     const hours = Math.floor(totalSeconds / 3600);
@@ -207,7 +216,7 @@
   return {
     clamp, round, localISO, parseLocalDate, daysBetween, phaseForWeek, scheduledDeload,
     effectiveExercise, progressionSuggestion, maintenanceCalories, nutritionWeight, nutritionTargets,
-    restSeconds, formatTimer,
+    restSeconds, setEntryComplete, formatTimer,
     entriesInDateWindow, weeklyAverages, habitScore, phaseAdvice
   };
 });

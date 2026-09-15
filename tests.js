@@ -47,6 +47,10 @@ assert.equal(logic.nutritionTargets({ weight: 220, heightIn: 72, age: 35, sex: "
 assert.equal(logic.restSeconds("60 seconds between paired exercises"), 60);
 assert.equal(logic.restSeconds("90-120 sec"), 120);
 assert.equal(logic.restSeconds("2 min"), 120);
+assert.equal(logic.setEntryComplete("135", "10"), true);
+assert.equal(logic.setEntryComplete("0", "12"), true);
+assert.equal(logic.setEntryComplete("", "12"), false);
+assert.equal(logic.setEntryComplete("135", ""), false);
 assert.equal(logic.formatTimer(90500, false), "01:30");
 assert.equal(logic.formatTimer(3723000, true), "01:02:03");
 
@@ -61,6 +65,24 @@ assert.equal(averages.change, -2);
 assert.deepEqual(Object.keys(program.phases).map(Number), [1, 2, 3]);
 assert.equal(program.phases[1].workouts.length, 4);
 assert.equal(program.phases[2].workouts.length, 5);
+
+let programmedExerciseChecks = 0;
+let programmedSetChecks = 0;
+for (let week = 1; week <= 36; week += 1) {
+  const phase = program.phases[logic.phaseForWeek(week)];
+  for (const workout of phase.workouts) {
+    for (const exercise of workout.exercises) {
+      assert.equal(typeof exercise.rest, "string", `Week ${week}: ${exercise.name} needs prescribed rest`);
+      assert.ok(exercise.rest.trim(), `Week ${week}: ${exercise.name} needs prescribed rest`);
+      const seconds = logic.restSeconds(exercise.rest);
+      assert.ok(seconds >= 15 && seconds <= 600, `Week ${week}: ${exercise.name} has invalid rest`);
+      programmedExerciseChecks += 1;
+      programmedSetChecks += exercise.sets;
+    }
+  }
+}
+assert.ok(programmedExerciseChecks > 1000, "Every exercise occurrence across all 36 weeks was checked");
+assert.ok(programmedSetChecks > 3000, "Every prescribed set across all 36 weeks was checked");
 assert.equal(program.phases[3].workouts.length, 5);
 assert.deepEqual(program.deloadWeeks, [6, 12, 18, 24, 30]);
 assert.equal(program.phases[1].workouts[0].exercises[0].name, "Barbell bench press");

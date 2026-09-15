@@ -20,6 +20,9 @@ test("workout and rest timers are persisted in protected tracker state", () => {
   assert.match(trackerSource, /workoutStartedAt/);
   assert.match(trackerSource, /restEndsAt/);
   assert.match(trackerSource, /rest-timer-start/);
+  assert.match(trackerSource, /L\.setEntryComplete\(weight, reps\)/);
+  assert.match(trackerSource, /startRestTimer\(prescribedRest\)/);
+  assert.doesNotMatch(trackerSource, /saveState\(`Sets saved — \$\{rest\}-second rest started`\)/);
   assert.match(stateRoute, /timers: z\.record/);
 });
 
