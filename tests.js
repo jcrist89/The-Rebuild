@@ -1,8 +1,8 @@
-"use strict";
+import assert from "node:assert/strict";
+import "./public/logic.js";
+import program from "./program-data.js";
 
-const assert = require("node:assert/strict");
-const logic = require("./public/logic.js");
-const program = require("./program-data.js");
+const logic = globalThis.RebuildLogic;
 
 assert.equal(logic.phaseForWeek(1), 1);
 assert.equal(logic.phaseForWeek(12), 1);
@@ -44,6 +44,11 @@ const nutritionWeight = logic.nutritionWeight([
 assert.deepEqual(nutritionWeight, { weight: 218, label: "7-day average", count: 3 });
 assert.equal(logic.nutritionWeight([{ date: "2026-09-03", value: 210 }], 225, "2026-09-03").weight, 210);
 assert.equal(logic.nutritionTargets({ weight: 220, heightIn: 72, age: 35, sex: "male", activity: "moderate" }, 1, false, 200).protein, 200);
+assert.equal(logic.restSeconds("60 seconds between paired exercises"), 60);
+assert.equal(logic.restSeconds("90-120 sec"), 120);
+assert.equal(logic.restSeconds("2 min"), 120);
+assert.equal(logic.formatTimer(90500, false), "01:30");
+assert.equal(logic.formatTimer(3723000, true), "01:02:03");
 
 const averages = logic.weeklyAverages([
   ...Array.from({ length: 7 }, (_, i) => ({ date: `2026-08-${String(25 + i).padStart(2, "0")}`, value: 200 })),

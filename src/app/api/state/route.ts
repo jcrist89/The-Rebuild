@@ -10,6 +10,7 @@ const trackerStateSchema = z.object({
   onboarded: z.boolean(),
   profile: z.record(z.string(), z.unknown()),
   program: z.record(z.string(), z.unknown()),
+  timers: z.record(z.string(), z.unknown()).optional(),
   substitutions: z.record(z.string(), z.unknown()),
   logs: z.array(z.unknown()).max(5000),
   weights: z.array(z.unknown()).max(1000),

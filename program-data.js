@@ -1,8 +1,4 @@
-(function (root, factory) {
-  const data = factory();
-  if (typeof module === "object" && module.exports) module.exports = data;
-  root.REACHER_PROGRAM = data;
-})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+const program = (() => {
   "use strict";
 
   const ex = (id, name, tag, sets, min, max, rpe, rest, notes, group, category, unit) => ({
@@ -195,4 +191,6 @@
       caffeine: "Caffeine cutoff", foodLog: "Logged food", recovery: "Decompression + mobility"
     }
   };
-});
+})();
+
+export default program;

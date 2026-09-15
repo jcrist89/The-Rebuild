@@ -119,6 +119,23 @@
     return { maintenance, calories, protein, fat, carbs, fiber, water, weight };
   }
 
+  function restSeconds(restText) {
+    const text = String(restText || "").toLowerCase();
+    const values = (text.match(/\d+(?:\.\d+)?/g) || []).map(Number).filter(Number.isFinite);
+    if (!values.length) return 90;
+    const seconds = Math.max(...values) * (/\bmin/.test(text) ? 60 : 1);
+    return clamp(Math.round(seconds), 15, 600);
+  }
+
+  function formatTimer(milliseconds, showHours) {
+    const totalSeconds = Math.max(0, Math.floor(Number(milliseconds) / 1000) || 0);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor(totalSeconds % 3600 / 60);
+    const seconds = totalSeconds % 60;
+    if (showHours || hours) return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
+
   function entriesInDateWindow(entries, endISO, days, valueKey) {
     return (Array.isArray(entries) ? entries : [])
       .filter((entry) => {
@@ -190,6 +207,7 @@
   return {
     clamp, round, localISO, parseLocalDate, daysBetween, phaseForWeek, scheduledDeload,
     effectiveExercise, progressionSuggestion, maintenanceCalories, nutritionWeight, nutritionTargets,
+    restSeconds, formatTimer,
     entriesInDateWindow, weeklyAverages, habitScore, phaseAdvice
   };
 });

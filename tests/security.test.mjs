@@ -14,6 +14,15 @@ test("the browser requests protected data and progress through authenticated API
   assert.doesNotMatch(source, /register\("\/sw\.js"\)/);
 });
 
+test("workout and rest timers are persisted in protected tracker state", () => {
+  const trackerSource = readFileSync("public/tracker.js", "utf8");
+  const stateRoute = readFileSync("src/app/api/state/route.ts", "utf8");
+  assert.match(trackerSource, /workoutStartedAt/);
+  assert.match(trackerSource, /restEndsAt/);
+  assert.match(trackerSource, /rest-timer-start/);
+  assert.match(stateRoute, /timers: z\.record/);
+});
+
 test("Stripe checkout and webhook code have been removed", () => {
   assert.equal(existsSync("src/app/api/checkout/route.ts"), false);
   assert.equal(existsSync("src/app/api/stripe/webhook/route.ts"), false);

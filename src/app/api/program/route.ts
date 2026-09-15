@@ -1,9 +1,7 @@
 import { getAuthenticatedUser, getReacherAccount, hasReacherAccess } from "@/lib/auth";
+import program from "../../../../program-data.js";
 
 // The training plan remains in this server-only module; it is never shipped in a public JS bundle.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const program = require("../../../../program-data.js");
-
 export const dynamic = "force-dynamic";
 
 export async function GET() {

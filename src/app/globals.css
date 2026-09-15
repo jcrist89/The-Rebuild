@@ -152,6 +152,16 @@ main { max-width: 680px; margin: 0 auto; padding: 16px 16px 8px; }
 .log-button.done { color: #9bdcfa; border-color: #1e6a8c; background: #12455c; }
 .session-note { padding: 11px 15px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 
+.timer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 13px; }
+.timer-grid.compact { grid-template-columns: 1fr; margin-bottom: 14px; }
+.timer-grid.compact .timer-panel:first-child { display: none; }
+.timer-panel { padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.timer-display { margin: 5px 0 12px; font-family: "Barlow Condensed", Impact, sans-serif; font-size: clamp(34px, 10vw, 48px); font-weight: 800; line-height: 1; letter-spacing: 0.035em; }
+.timer-status { color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; }
+.timer-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 8px; }
+.timer-presets button { min-height: 35px; border: 1px solid #1e6a8c; border-radius: 8px; color: #9bdcfa; background: #12455c; font-size: 12px; font-weight: 800; }
+.timer-presets button:active { transform: scale(0.97); }
+
 .habit-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .habit {
   display: flex; align-items: center; gap: 9px; padding: 10px;
@@ -320,6 +330,7 @@ tr:last-child td { border-bottom: 0; }
   .exercise { grid-template-columns: auto minmax(0, 1fr); }
   .exercise > :last-child { grid-column: 2; display: flex; align-items: center; justify-content: space-between; }
   .weight { text-align: left; }
+  .timer-grid { grid-template-columns: 1fr; }
 }
 
 /* Public landing page */

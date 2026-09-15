@@ -30,6 +30,7 @@
         activity: "moderate", startDate: L.localISO(), startWeek: 1, upperIncrement: 5, lowerIncrement: 10, buildSplit: "five"
       },
       program: { currentWeek: 1, selectedWorkout: "", completed: {}, manualDeloadWeeks: [] },
+      timers: { workoutStartedAt: null, workoutElapsedMs: 0, restEndsAt: null, restDuration: 90 },
       substitutions: {},
       logs: [],
       weights: [],
@@ -49,6 +50,7 @@
       version: 1,
       profile: { ...base.profile, ...(input.profile || {}) },
       program: { ...base.program, ...(input.program || {}) },
+      timers: { ...base.timers, ...(input.timers || {}) },
       substitutions: input.substitutions && typeof input.substitutions === "object" ? input.substitutions : {},
       logs: Array.isArray(input.logs) ? input.logs.slice(-5000) : [],
       weights: Array.isArray(input.weights) ? input.weights.slice(-1000) : [],
@@ -59,6 +61,10 @@
     };
     out.program.currentWeek = L.clamp(Number(out.program.currentWeek) || 1, 1, 36);
     out.program.manualDeloadWeeks = Array.isArray(out.program.manualDeloadWeeks) ? out.program.manualDeloadWeeks.map(Number).filter((n) => n >= 1 && n <= 36) : [];
+    out.timers.workoutStartedAt = Number.isFinite(Number(out.timers.workoutStartedAt)) && Number(out.timers.workoutStartedAt) > 0 ? Number(out.timers.workoutStartedAt) : null;
+    out.timers.workoutElapsedMs = L.clamp(Number(out.timers.workoutElapsedMs) || 0, 0, 604800000);
+    out.timers.restEndsAt = Number.isFinite(Number(out.timers.restEndsAt)) && Number(out.timers.restEndsAt) > 0 ? Number(out.timers.restEndsAt) : null;
+    out.timers.restDuration = L.clamp(Number(out.timers.restDuration) || 90, 15, 600);
     return out;
   }
 
@@ -73,6 +79,7 @@
   let toastTimer = null;
   let remoteSyncTimer = null;
   let remoteSyncReady = false;
+  let timerAudioContext = null;
 
   function nutritionContext() {
     const basis = L.nutritionWeight(state.weights, state.profile.weight, L.localISO());
@@ -80,6 +87,113 @@
       basis,
       targets: L.nutritionTargets(state.profile, phaseNumber(), trainedToday(), basis.weight)
     };
+  }
+
+  function workoutElapsed(now = Date.now()) {
+    const running = state.timers.workoutStartedAt ? Math.max(0, now - state.timers.workoutStartedAt) : 0;
+    return state.timers.workoutElapsedMs + running;
+  }
+
+  function restRemaining(now = Date.now()) {
+    return state.timers.restEndsAt ? Math.max(0, state.timers.restEndsAt - now) : state.timers.restDuration * 1000;
+  }
+
+  function primeTimerAudio() {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      if (!timerAudioContext) timerAudioContext = new AudioContext();
+      if (timerAudioContext.state === "suspended") void timerAudioContext.resume();
+    } catch (error) { console.warn("Timer sound unavailable", error); }
+  }
+
+  function signalRestComplete() {
+    try { if (navigator.vibrate) navigator.vibrate([180, 90, 260]); } catch (error) { console.warn("Timer vibration unavailable", error); }
+    try {
+      if (!timerAudioContext || timerAudioContext.state !== "running") return;
+      const oscillator = timerAudioContext.createOscillator();
+      const gain = timerAudioContext.createGain();
+      oscillator.frequency.value = 880;
+      gain.gain.setValueAtTime(0.12, timerAudioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, timerAudioContext.currentTime + 0.45);
+      oscillator.connect(gain).connect(timerAudioContext.destination);
+      oscillator.start();
+      oscillator.stop(timerAudioContext.currentTime + 0.45);
+    } catch (error) { console.warn("Timer sound unavailable", error); }
+  }
+
+  function updateTimerDisplays() {
+    if (!state?.timers) return;
+    const now = Date.now();
+    const workout = L.formatTimer(workoutElapsed(now), true);
+    document.querySelectorAll("[data-workout-clock]").forEach((element) => { element.textContent = workout; });
+    document.querySelectorAll("[data-workout-toggle]").forEach((element) => { element.textContent = state.timers.workoutStartedAt ? "Pause" : "Start"; });
+
+    const wasResting = Boolean(state.timers.restEndsAt);
+    const remaining = restRemaining(now);
+    if (wasResting && remaining <= 0) {
+      state.timers.restEndsAt = null;
+      saveState("Rest complete — next set");
+      signalRestComplete();
+    }
+    const rest = L.formatTimer(wasResting ? remaining : state.timers.restDuration * 1000, false);
+    document.querySelectorAll("[data-rest-clock]").forEach((element) => { element.textContent = rest; });
+    document.querySelectorAll("[data-rest-status]").forEach((element) => { element.textContent = wasResting && remaining > 0 ? "Counting down" : "Ready"; });
+  }
+
+  function toggleWorkoutTimer() {
+    if (state.timers.workoutStartedAt) {
+      state.timers.workoutElapsedMs = workoutElapsed();
+      state.timers.workoutStartedAt = null;
+      saveState("Workout timer paused");
+    } else {
+      state.timers.workoutStartedAt = Date.now();
+      saveState("Workout timer started");
+    }
+    updateTimerDisplays();
+  }
+
+  function resetWorkoutTimer() {
+    state.timers.workoutStartedAt = null;
+    state.timers.workoutElapsedMs = 0;
+    saveState("Workout timer reset");
+    updateTimerDisplays();
+  }
+
+  function startRestTimer(seconds, persist = true) {
+    primeTimerAudio();
+    const duration = L.clamp(Number(seconds) || state.timers.restDuration || 90, 15, 600);
+    state.timers.restDuration = duration;
+    state.timers.restEndsAt = Date.now() + duration * 1000;
+    if (persist) saveState(`${duration}-second rest started`);
+    updateTimerDisplays();
+  }
+
+  function adjustRestTimer(seconds) {
+    const now = Date.now();
+    if (state.timers.restEndsAt) {
+      state.timers.restEndsAt = Math.max(now, state.timers.restEndsAt + Number(seconds) * 1000);
+    } else {
+      state.timers.restDuration = L.clamp(state.timers.restDuration + Number(seconds), 15, 600);
+    }
+    saveState(seconds > 0 ? "Rest time added" : "Rest time reduced");
+    updateTimerDisplays();
+  }
+
+  function cancelRestTimer() {
+    state.timers.restEndsAt = null;
+    saveState("Rest timer cleared");
+    updateTimerDisplays();
+  }
+
+  function timerControls(compact = false) {
+    return `<div class="timer-grid ${compact ? "compact" : ""}">
+      <div class="timer-panel"><div class="label">Workout clock</div><div class="timer-display orange" data-workout-clock>${L.formatTimer(workoutElapsed(), true)}</div>
+        <div class="button-row"><button class="button small" data-action="workout-timer-toggle" data-workout-toggle>${state.timers.workoutStartedAt ? "Pause" : "Start"}</button><button class="button secondary small" data-action="workout-timer-reset">Reset</button></div></div>
+      <div class="timer-panel"><div class="row"><div class="label">Rest timer</div><span class="timer-status" data-rest-status>${state.timers.restEndsAt ? "Counting down" : "Ready"}</span></div><div class="timer-display blue" data-rest-clock>${L.formatTimer(restRemaining(), false)}</div>
+        <div class="timer-presets">${[60, 90, 120].map((seconds) => `<button data-action="rest-timer-start" data-seconds="${seconds}" aria-label="Start ${seconds} second rest">${seconds}s</button>`).join("")}</div>
+        <div class="button-row"><button class="button secondary small" data-action="rest-timer-adjust" data-seconds="-15">−15</button><button class="button secondary small" data-action="rest-timer-cancel">Clear</button><button class="button secondary small" data-action="rest-timer-adjust" data-seconds="15">+15</button></div></div>
+    </div>`;
   }
 
   function redirectForAccess(status) {
@@ -349,7 +463,8 @@
     </div>`;
     if (isDeload()) html += `<div class="callout blue" style="margin-bottom:13px"><strong>Deload week.</strong> The app has cut working sets in half and recommends 60% of the previous load.</div>`;
 
-    html += `<div class="section-title"><h2>Session order</h2><span>keep the order, not the days</span></div>
+    html += `<div class="section-title"><h2>Session timers</h2><span>saved if you leave</span></div>${timerControls()}
+      <div class="section-title"><h2>Session order</h2><span>keep the order, not the days</span></div>
       <div class="button-row" style="overflow-x:auto;padding-bottom:5px">${workouts().map((item) => `<button class="button small ${item.id === workout.id ? "" : "secondary"}" style="min-width:100px" data-action="select-workout" data-id="${item.id}">${isWorkoutComplete(item.id) ? "✓ " : ""}${esc(item.name)}</button>`).join("")}</div>
       <div class="section-title"><h2>${esc(workout.name)}</h2><span>${logged}/${exercises.length} logged</span></div>
       <div class="card workout-card">
@@ -405,6 +520,7 @@
       <div class="field"><label class="label" for="actualExercise">Exercise or substitution</label><select class="input" id="actualExercise">${options.map((name) => `<option ${name === selectedName ? "selected" : ""}>${esc(name)}</option>`).join("")}<option value="__custom">Custom substitution...</option></select></div>
       <div id="customExerciseBox" class="field hidden"><label class="label" for="customExercise">Custom exercise</label><input class="input" id="customExercise" maxlength="100" placeholder="Same movement pattern and rep range"></div>
       <div class="callout" style="margin-bottom:14px">${esc(exercise.notes)}</div>
+      ${timerControls(true)}
       ${rows}
       <div class="button-row" style="margin-top:15px"><button class="button secondary" data-action="close-sheet">Cancel</button><button class="button" data-action="save-exercise">Save sets</button></div>
       ${current ? `<button class="button danger small" style="margin-top:9px" data-action="delete-exercise-log">Delete this log</button>` : ""}`;
@@ -441,7 +557,9 @@
     state.substitutions[exercise.id] = actualName;
     state.logs = state.logs.filter((log) => !(Number(log.week) === state.program.currentWeek && log.workoutId === workout.id && log.exerciseId === exercise.id));
     state.logs.push({ week: state.program.currentWeek, phase: phaseNumber(), workoutId: workout.id, exerciseId: exercise.id, actualName, date: L.localISO(), savedAt: Date.now(), sets });
-    saveState("Sets saved");
+    const rest = L.restSeconds(exercise.rest);
+    startRestTimer(rest, false);
+    saveState(`Sets saved — ${rest}-second rest started`);
     closeSheet();
     refresh();
   }
@@ -679,6 +797,11 @@
     else if (action === "close-sheet") closeSheet();
     else if (action === "save-exercise") saveExercise();
     else if (action === "delete-exercise-log") deleteExerciseLog();
+    else if (action === "workout-timer-toggle") toggleWorkoutTimer();
+    else if (action === "workout-timer-reset") resetWorkoutTimer();
+    else if (action === "rest-timer-start") startRestTimer(Number(button.dataset.seconds));
+    else if (action === "rest-timer-adjust") adjustRestTimer(Number(button.dataset.seconds));
+    else if (action === "rest-timer-cancel") cancelRestTimer();
     else if (action === "toggle-workout") toggleWorkout(button.dataset.id);
     else if (action === "week-back") changeWeek(state.program.currentWeek - 1);
     else if (action === "week-forward" || action === "advance-week") changeWeek(state.program.currentWeek + 1);
@@ -714,6 +837,7 @@
       if (!remote.state && localStorage.getItem(STORAGE_KEY)) scheduleRemoteSync();
       if (localStorage.getItem(OLD_KEY) && !localStorage.getItem(STORAGE_KEY)) console.info("A previous Rebuild tracker save exists under a separate data format and was left untouched.");
       refresh();
+      updateTimerDisplays();
     } catch (error) {
       console.error("The protected tracker could not start", error);
       const setup = $("setupView");
@@ -723,4 +847,6 @@
   }
 
   void initialize();
+  window.setInterval(updateTimerDisplays, 250);
+  document.addEventListener("visibilitychange", updateTimerDisplays);
 })();
