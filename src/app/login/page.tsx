@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getAuthenticatedUser } from "@/lib/auth";
+import { getAuthenticatedUser, getReacherAccount, hasReacherAccess } from "@/lib/auth";
 import { signIn } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -10,7 +10,13 @@ type LoginPageProps = {
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  if (await getAuthenticatedUser()) redirect("/");
+  const user = await getAuthenticatedUser();
+  if (user) {
+    const account = await getReacherAccount(user.id);
+    if (account?.status === "active" && account.mustChangePassword) redirect("/account/password");
+    if (hasReacherAccess(account)) redirect("/tracker");
+    redirect("/access");
+  }
   const params = await searchParams;
 
   return (

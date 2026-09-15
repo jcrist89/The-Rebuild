@@ -38,6 +38,14 @@ test("username login uses Supabase password authentication without public signup
   assert.doesNotMatch(source, /signUp|signInWithOtp/);
 });
 
+test("authenticated visitors entering the program are routed beyond the landing page", () => {
+  const source = readFileSync("src/app/login/page.tsx", "utf8");
+  assert.match(source, /redirect\("\/tracker"\)/);
+  assert.match(source, /redirect\("\/account\/password"\)/);
+  assert.match(source, /redirect\("\/access"\)/);
+  assert.doesNotMatch(source, /getAuthenticatedUser\(\)\) redirect\("\/"\)/);
+});
+
 test("temporary passwords must be replaced and are never inserted into the account table", () => {
   const adminSource = readFileSync("src/app/admin/actions.ts", "utf8");
   const passwordSource = readFileSync("src/app/account/password/actions.ts", "utf8");
