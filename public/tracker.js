@@ -6,9 +6,13 @@
   // Local storage must be scoped per authenticated account: without the account id in the
   // key, one browser used by two accounts (a coach demoing the app, a shared family device,
   // a buyer who is later disabled and replaced) would read and silently adopt whatever the
-  // previous account left behind. window.__ACCOUNT_ID is set server-side in tracker/page.tsx
-  // before this script runs, from the signed-in session — never from anything client-editable.
-  const ACCOUNT_ID = typeof window !== "undefined" && window.__ACCOUNT_ID ? String(window.__ACCOUNT_ID) : null;
+  // previous account left behind. The account id is rendered server-side in tracker/page.tsx
+  // as a data attribute on #accountScope, from the signed-in session — never from anything
+  // client-editable. It's a DOM attribute rather than a window global set by a separate
+  // beforeInteractive script because this page is often reached by client-side navigation
+  // (the landing page's link, the login redirect), and next/script's beforeInteractive
+  // strategy only runs reliably on a full document load, not a soft navigation.
+  const ACCOUNT_ID = typeof document !== "undefined" ? (document.getElementById("accountScope")?.dataset.accountId ?? null) : null;
   const STORAGE_KEY = ACCOUNT_ID ? `jcf-the-rebuild-v1:${ACCOUNT_ID}` : null;
   const TITLES = {
     today: ["THE ", "BUILD"], train: ["THE ", "WORK"], fuel: ["THE ", "FUEL"],

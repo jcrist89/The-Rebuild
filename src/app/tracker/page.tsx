@@ -14,6 +14,7 @@ export default async function TrackerPage() {
 
   return (
     <>
+      <div id="accountScope" data-account-id={user.id} style={{ display: "none" }} />
       <div id="setupView" className="setup hidden" aria-live="polite" />
 
       <div id="appShell" className="hidden">
@@ -71,12 +72,14 @@ export default async function TrackerPage() {
       </section>
       <div id="toast" className="toast" role="status" aria-live="polite" />
 
-      <Script
-        id="account-scope"
-        strategy="beforeInteractive"
-        dangerouslySetInnerHTML={{ __html: `window.__ACCOUNT_ID = ${JSON.stringify(user.id)};` }}
-      />
-      <Script src="/logic.js" strategy="beforeInteractive" />
+      {/* afterInteractive (not beforeInteractive, which next/script only supports in the root
+          layout): this page is reached by client-side navigation from the landing page and from
+          the login server action's redirect, not always a full document load, so a
+          beforeInteractive script here silently never runs on those soft navigations and
+          tracker.js is left calling into a missing logic.js — a blank screen until a hard
+          refresh. afterInteractive scripts execute in the order they're inserted, so logic.js
+          still loads before tracker.js on every navigation, soft or hard. */}
+      <Script src="/logic.js" strategy="afterInteractive" />
       <Script src="/tracker.js" strategy="afterInteractive" />
     </>
   );
