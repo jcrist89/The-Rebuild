@@ -167,7 +167,7 @@ const program = (() => {
   };
 
   return {
-    title: "The Reacher Build",
+    title: "The Rebuild",
     weeks: 36,
     deloadWeeks: [6, 12, 18, 24, 30],
     phases,

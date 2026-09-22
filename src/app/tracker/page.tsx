@@ -23,6 +23,9 @@ export default async function TrackerPage() {
               <div className="brand"><strong>JON CRIST</strong> <em>FIT</em></div>
               <div className="account-actions">
                 {account.role === "admin" ? <Link href="/admin">Manage users</Link> : null}
+                <button type="button" className="messages-nav-button" data-action="open-messages">
+                  Messages<span className="messages-badge hidden" data-messages-badge>0</span>
+                </button>
                 <Link href="/account/password">Account</Link>
                 <form action="/auth/signout" method="post"><button type="submit" className="signout-button">Sign out</button></form>
               </div>
@@ -68,6 +71,11 @@ export default async function TrackerPage() {
       </section>
       <div id="toast" className="toast" role="status" aria-live="polite" />
 
+      <Script
+        id="account-scope"
+        strategy="beforeInteractive"
+        dangerouslySetInnerHTML={{ __html: `window.__ACCOUNT_ID = ${JSON.stringify(user.id)};` }}
+      />
       <Script src="/logic.js" strategy="beforeInteractive" />
       <Script src="/tracker.js" strategy="afterInteractive" />
     </>

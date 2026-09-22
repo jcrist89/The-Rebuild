@@ -17,7 +17,7 @@ export default function HomePage() {
   return (
     <div className="landing-page">
       <header className="landing-nav">
-        <Link href="/" className="landing-mark" aria-label="The Reacher Build home"><span>RB</span><span>The Reacher Build</span></Link>
+        <Link href="/" className="landing-mark" aria-label="The Rebuild home"><span>RB</span><span>The Rebuild</span></Link>
         <nav aria-label="Primary navigation">
           <a href="#system">The system</a><a href="#standard">The standard</a><Link href="/login" className="nav-cta">Enter program</Link>
         </nav>
@@ -46,7 +46,7 @@ export default function HomePage() {
         <section className="manifesto-section" id="standard">
           <p className="section-index">[ 001 ]</p>
           <div className="manifesto-copy"><p className="landing-kicker">The standard</p><h2>You do not need more motivation. You need a system that still works when motivation leaves.</h2></div>
-          <p className="manifesto-note">The Reacher Build turns the next 36 weeks into a clear sequence of work: what to lift, what to eat, what to measure, and when to adjust.</p>
+          <p className="manifesto-note">The Rebuild turns the next 36 weeks into a clear sequence of work: what to lift, what to eat, what to measure, and when to adjust.</p>
         </section>
         <section className="system-section" id="system" aria-labelledby="system-title">
           <div className="section-heading">
@@ -68,7 +68,7 @@ export default function HomePage() {
           <Link href="/login" className="landing-button light">Enter the program <span aria-hidden="true">↗</span></Link><div className="close-stamp" aria-hidden="true">36 / WEEKS</div>
         </section>
       </main>
-      <footer className="landing-footer"><span>The Reacher Build</span><span>Strength · Structure · Discipline</span><span>Built for the long game</span></footer>
+      <footer className="landing-footer"><span>The Rebuild</span><span>Strength · Structure · Discipline</span><span>Built for the long game</span></footer>
     </div>
   );
 }

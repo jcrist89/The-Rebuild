@@ -43,11 +43,12 @@ input, select, textarea { font-size: 16px; }
 .topbar-inner { max-width: 680px; margin: 0 auto; }
 .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .account-actions { display: flex; align-items: center; gap: 12px; }
-.account-actions a, .admin-nav a, .admin-nav button {
+.account-actions a, .account-actions button, .admin-nav a, .admin-nav button {
   padding: 4px 0; color: var(--muted); background: transparent; font-size: 11px;
   font-weight: 800; letter-spacing: 0.08em; text-decoration: none; text-transform: uppercase;
 }
-.account-actions a:hover, .admin-nav a:hover, .admin-nav button:hover { color: var(--text); }
+.account-actions a:hover, .account-actions button:hover, .admin-nav a:hover, .admin-nav button:hover { color: var(--text); }
+.messages-nav-button { display: inline-flex; align-items: center; }
 .signout-button { padding: 4px 0; color: var(--muted); background: transparent; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .signout-button:hover { color: var(--text); }
 .brand { color: var(--muted); font-size: 12px; font-weight: 800; letter-spacing: 0.2em; }
@@ -303,14 +304,16 @@ tr:last-child td { border-bottom: 0; }
 .credential-card dd { margin: 0; overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-weight: 800; }
 .credential-card.compact { margin-top: 8px; }
 .account-list { display: grid; }
-.account-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 15px 0; border-top: 1px solid var(--line); }
+.account-row { display: flex; flex-direction: column; gap: 4px; padding: 15px 0; border-top: 1px solid var(--line); }
 .account-row:first-child { border-top: 0; }
+.account-row-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
 .account-identity { display: grid; min-width: 0; }
 .account-identity > strong { font-size: 14px; }
 .account-identity > span { color: var(--blue); font-size: 12px; }
 .account-identity > small { margin-top: 3px; color: var(--muted); font-size: 10px; }
 .account-controls { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: flex-end; gap: 8px; }
 .account-controls form { margin: 0; }
+.messages-panel .messages-badge { position: relative; top: -1px; }
 .small-action { padding: 6px 9px; border: 1px solid var(--line); border-radius: 7px; color: var(--muted); background: var(--surface-2); font-size: 10px; font-weight: 800; }
 .small-action:hover { color: var(--text); border-color: #3b4b5c; }
 .reset-wrap { max-width: 350px; }
@@ -318,7 +321,7 @@ tr:last-child td { border-bottom: 0; }
 @media (max-width: 520px) {
   .auth-card { padding: 25px 20px; }
   .admin-header { align-items: flex-start; flex-direction: column; }
-  .account-row { flex-direction: column; }
+  .account-row-top { flex-direction: column; }
   .account-controls { justify-content: flex-start; }
   .credential-card dl div { grid-template-columns: 1fr; gap: 2px; }
 }
@@ -413,3 +416,21 @@ tr:last-child td { border-bottom: 0; }
 .discipline-section { color:var(--text); background:var(--surface-2); }.discipline-intro .landing-kicker { color:var(--orange); }.discipline-list { border-top-color:var(--line); }.discipline-row { border-bottom-color:var(--line); }.discipline-row>span, .discipline-row p { color:var(--muted); }
 .landing-close { color:var(--text); background:#10394d; }.landing-close .landing-kicker { color:#9bdcfa; }.landing-close h2 em { -webkit-text-stroke-color:var(--orange); }.landing-button.light { color:var(--bg)!important; background:var(--orange); }.close-stamp { color:rgba(41,169,224,.13); }
 .landing-footer { color:var(--muted); background:#080b0f; }
+
+/* Messages */
+.messages-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 15px; height: 15px; margin-left: 5px; padding: 0 4px;
+  border-radius: 99px; background: var(--orange); color: #0b0f14;
+  font-size: 9px; font-weight: 800;
+}
+.messages-badge.hidden { display: none; }
+.message-thread { display: flex; flex-direction: column; gap: 10px; max-height: 48vh; overflow-y: auto; margin-bottom: 14px; padding-right: 2px; }
+.message-bubble { max-width: 84%; padding: 9px 12px; border-radius: 13px; font-size: 13.5px; line-height: 1.35; }
+.message-bubble .message-meta { display: block; margin-top: 4px; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.7; }
+.message-bubble.theirs { align-self: flex-start; border-bottom-left-radius: 4px; background: var(--surface-2); border: 1px solid var(--line); color: var(--text); }
+.message-bubble.mine { align-self: flex-end; border-bottom-right-radius: 4px; background: var(--orange-soft); border: 1px solid rgba(242, 107, 33, 0.35); color: var(--text); }
+.message-empty { padding: 20px 0; text-align: center; color: var(--muted); font-size: 12.5px; }
+.message-compose { display: flex; gap: 8px; align-items: flex-end; }
+.message-compose textarea { flex: 1; min-height: 46px; max-height: 120px; resize: vertical; border: 1px solid var(--line); border-radius: 11px; background: var(--surface-3); color: var(--text); padding: 11px 13px; font-size: 14px; font-family: inherit; }
+.message-compose button { width: auto; min-height: 46px; padding: 0 16px; }

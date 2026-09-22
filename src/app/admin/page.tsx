@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getAuthenticatedUser, getReacherAccount } from "@/lib/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/admin";
 import { CreateAccountForm } from "./CreateAccountForm";
+import { MessagesPanel } from "./MessagesPanel";
 import { ResetPasswordForm } from "./ResetPasswordForm";
 import { setAccountStatus } from "./actions";
 
@@ -37,7 +38,7 @@ export default async function AdminPage() {
         <div>
           <div className="brand"><strong>JON CRIST</strong> <em>FIT</em></div>
           <p className="eyebrow">OWNER CONSOLE</p>
-          <h1>REACHER <span>ACCOUNTS</span></h1>
+          <h1>REBUILD <span>ACCOUNTS</span></h1>
         </div>
         <div className="admin-nav"><Link href="/tracker">Tracker</Link><form action="/auth/signout" method="post"><button type="submit">Sign out</button></form></div>
       </header>
@@ -54,6 +55,7 @@ export default async function AdminPage() {
         <div className="account-list">
           {accounts.map((account) => (
             <article className="account-row" key={account.user_id}>
+              <div className="account-row-top">
               <div className="account-identity">
                 <strong>{account.display_name}</strong>
                 <span>@{account.username}</span>
@@ -72,6 +74,8 @@ export default async function AdminPage() {
                   </>
                 ) : null}
               </div>
+              </div>
+              {account.role === "buyer" ? <MessagesPanel userId={account.user_id} displayName={account.display_name} /> : null}
             </article>
           ))}
         </div>

@@ -1,6 +1,6 @@
-# The Reacher Build Tracker
+# The Rebuild Tracker
 
-Private, mobile-first companion tracker for the 36-week **Reacher Build** blueprint by Jon Crist Fit.
+Private, mobile-first companion tracker for the 36-week **Rebuild** blueprint by Jon Crist Fit.
 
 ## Access model
 
@@ -12,6 +12,7 @@ Private, mobile-first companion tracker for the 36-week **Reacher Build** bluepr
 - The program definition is delivered only by `/api/program` after authentication and an active account check.
 - Progress is saved locally for resilience and synced to the buyer's Supabase account.
 - The owner can disable accounts or issue a new one-time temporary password.
+- Each buyer has a direct message thread with the owner (`/api/messages`, `public.reacher_messages`), visible to that buyer in the tracker and to the owner in `/admin`.
 
 ## Local setup
 
@@ -43,6 +44,8 @@ npm.cmd run lint
 npm.cmd run build
 ```
 
-## Legacy data migration
+## Local storage and account isolation
 
-On a buyer's first authenticated load, any existing `jcf-reacher-build-v1` browser save is uploaded to their account when no cloud state exists. Offline service-worker caching remains disabled because disabled accounts must not retain access through a cached application shell.
+Browser local storage is scoped per signed-in account (`jcf-the-rebuild-v1:<user id>`), set server-side from the session in `tracker/page.tsx` and never read from anything client-editable. This exists so a device used by more than one account — a shared or demo browser, a buyer whose account is disabled and replaced — never lets a new session inherit a previous account's cached progress. Supabase is authoritative: a signed-in buyer's saved remote state always wins over local storage, and local storage is used only as an offline cache for that same account and a short-lived upload buffer before the first sync completes.
+
+Offline service-worker caching remains disabled because disabled accounts must not retain access through a cached application shell.

@@ -88,4 +88,4 @@ assert.deepEqual(program.deloadWeeks, [6, 12, 18, 24, 30]);
 assert.equal(program.phases[1].workouts[0].exercises[0].name, "Barbell bench press");
 assert.equal(program.phases[2].workouts[4].exercises.at(-1).name, "Weighted plank");
 
-console.log("All Reacher Build logic and program-data checks passed.");
+console.log("All Rebuild logic and program-data checks passed.");

@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   return {
     metadataBase: new URL(origin),
-    title: "The Reacher Build | 36 Weeks. One Complete Rebuild.",
+    title: "The Rebuild | 36 Weeks. One Complete Rebuild.",
     description: "A 36-week strength, nutrition, and discipline system built to create a powerful, athletic physique.",
     manifest: "/manifest.json",
     icons: { icon: "/icon.svg", apple: "/icon.svg" },
@@ -22,11 +22,11 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       type: "website",
       url: origin,
-      title: "The Reacher Build",
+      title: "The Rebuild",
       description: "Build the frame. Earn the presence. A complete 36-week physical rebuild.",
-      images: [{ url: `${origin}/og-v2.png`, width: 1728, height: 907, alt: "The Reacher Build — 36 weeks. One complete rebuild." }],
+      images: [{ url: `${origin}/og-v2.png`, width: 1728, height: 907, alt: "The Rebuild — 36 weeks. One complete rebuild." }],
     },
-    twitter: { card: "summary_large_image", title: "The Reacher Build", description: "Build the frame. Earn the presence.", images: [`${origin}/og-v2.png`] },
+    twitter: { card: "summary_large_image", title: "The Rebuild", description: "Build the frame. Earn the presence.", images: [`${origin}/og-v2.png`] },
   };
 }
 

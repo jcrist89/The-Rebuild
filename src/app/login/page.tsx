@@ -24,8 +24,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <section className="auth-card">
         <div className="brand"><strong>JON CRIST</strong> <em>FIT</em></div>
         <p className="eyebrow">MEMBER ACCESS</p>
-        <h1>THE REACHER <span>BUILD</span></h1>
-        <p className="auth-lead">Use the username and temporary password provided with your Reacher Build access.</p>
+        <h1>THE <span>REBUILD</span></h1>
+        <p className="auth-lead">Use the username and temporary password provided with your Rebuild access.</p>
 
         <form action={signIn} className="auth-form">
           <label htmlFor="username">Username</label>
@@ -36,7 +36,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           <button type="submit" className="auth-primary">Sign in</button>
         </form>
 
-        <p className="auth-footnote">Need help? <Link href="mailto:support@joncristfit.com?subject=Reacher%20Build%20login">Contact support</Link></p>
+        <p className="auth-footnote">Need help? <Link href="mailto:support@joncristfit.com?subject=Rebuild%20login">Contact support</Link></p>
       </section>
     </main>
   );

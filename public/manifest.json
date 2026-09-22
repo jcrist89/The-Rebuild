@@ -1,7 +1,7 @@
 {
-  "name": "The Reacher Build - Jon Crist Fit",
-  "short_name": "Reacher Build",
-  "description": "The private companion tracker for the 36-week Reacher Build blueprint.",
+  "name": "The Rebuild - Jon Crist Fit",
+  "short_name": "The Rebuild",
+  "description": "The private companion tracker for the 36-week Rebuild blueprint.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

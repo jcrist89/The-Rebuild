@@ -3,8 +3,13 @@
 
   let PROGRAM = null;
   const L = window.RebuildLogic;
-  const STORAGE_KEY = "jcf-reacher-build-v1";
-  const OLD_KEY = "jcf-rebuild-v1";
+  // Local storage must be scoped per authenticated account: without the account id in the
+  // key, one browser used by two accounts (a coach demoing the app, a shared family device,
+  // a buyer who is later disabled and replaced) would read and silently adopt whatever the
+  // previous account left behind. window.__ACCOUNT_ID is set server-side in tracker/page.tsx
+  // before this script runs, from the signed-in session — never from anything client-editable.
+  const ACCOUNT_ID = typeof window !== "undefined" && window.__ACCOUNT_ID ? String(window.__ACCOUNT_ID) : null;
+  const STORAGE_KEY = ACCOUNT_ID ? `jcf-the-rebuild-v1:${ACCOUNT_ID}` : null;
   const TITLES = {
     today: ["THE ", "BUILD"], train: ["THE ", "WORK"], fuel: ["THE ", "FUEL"],
     body: ["THE ", "CHECK-IN"], plan: ["36 WEEK ", "MAP"]
@@ -69,6 +74,7 @@
   }
 
   function loadState() {
+    if (!STORAGE_KEY) return freshState();
     try { return normalizeState(JSON.parse(localStorage.getItem(STORAGE_KEY))); }
     catch (error) { return freshState(); }
   }
@@ -82,6 +88,9 @@
   let remoteSyncTimer = null;
   let remoteSyncReady = false;
   let timerAudioContext = null;
+  let messages = [];
+  let messagesLoaded = false;
+  let messagesSending = false;
 
   function nutritionContext() {
     const basis = L.nutritionWeight(state.weights, state.profile.weight, L.localISO());
@@ -245,7 +254,7 @@
 
   function saveState(message) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      if (STORAGE_KEY) localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       scheduleRemoteSync();
       if (message) toast(message);
       return true;
@@ -328,7 +337,7 @@
     view.innerHTML = `
       <div class="setup-logo">
         <div class="brand"><strong>JON CRIST</strong> <em>FIT</em></div>
-        <h1>THE <span>REACHER</span><br>BUILD</h1>
+        <h1>THE <span>REBUILD</span></h1>
         <div class="muted">Your 36-week blueprint, carried into every session.</div>
       </div>
       <form id="setupForm" class="card accent">
@@ -572,6 +581,86 @@
     sheetSetEntryTimers.clear();
   }
 
+  function unreadCoachMessages() {
+    return messages.filter((item) => item.author === "admin" && !item.read).length;
+  }
+
+  function updateMessagesBadge() {
+    const count = unreadCoachMessages();
+    document.querySelectorAll("[data-messages-badge]").forEach((element) => {
+      element.textContent = count > 9 ? "9+" : String(count);
+      element.classList.toggle("hidden", count === 0);
+    });
+  }
+
+  async function loadMessages({ markRead } = {}) {
+    try {
+      messages = (await protectedJson("/api/messages")).messages || [];
+      messagesLoaded = true;
+      updateMessagesBadge();
+      if (markRead && unreadCoachMessages() > 0) {
+        await fetch("/api/messages", { method: "PATCH", cache: "no-store", headers: { "Content-Type": "application/json" }, body: "{}" });
+        messages = messages.map((item) => (item.author === "admin" ? { ...item, read: true } : item));
+        updateMessagesBadge();
+      }
+    } catch (error) {
+      console.warn("Messages unavailable", error.message);
+    }
+  }
+
+  function messageBubble(item) {
+    const mine = item.author === "buyer";
+    const when = new Date(item.created_at).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    return `<div class="message-bubble ${mine ? "mine" : "theirs"}">${esc(item.message)}<span class="message-meta">${mine ? "You" : "Coach"} · ${when}</span></div>`;
+  }
+
+  function renderMessagesSheet() {
+    const thread = messages.length
+      ? `<div class="message-thread" id="messageThread">${messages.map(messageBubble).join("")}</div>`
+      : `<div class="message-thread"><div class="message-empty">No messages yet. Send your coach a note below.</div></div>`;
+    $("sheetBody").innerHTML = `<h2 id="sheetTitle">Messages</h2>
+      <div class="muted small" style="margin:3px 0 14px">Direct line to your coach. Replies land here, not in your regular inbox.</div>
+      ${thread}
+      <div class="message-compose"><textarea id="messageInput" maxlength="2000" placeholder="Write a message..." aria-label="Message"></textarea><button class="button" data-action="send-message" ${messagesSending ? "disabled" : ""}>Send</button></div>
+      <div class="button-row" style="margin-top:15px"><button class="button secondary" data-action="close-sheet">Close</button></div>`;
+    const scrollEl = $("messageThread");
+    if (scrollEl) scrollEl.scrollTop = scrollEl.scrollHeight;
+  }
+
+  async function openMessages() {
+    sheetContext = { messages: true };
+    renderMessagesSheet();
+    $("scrim").classList.add("on");
+    $("sheet").classList.add("on");
+    $("sheet").removeAttribute("inert");
+    $("sheet").setAttribute("aria-hidden", "false");
+    $("appShell").setAttribute("inert", "");
+    setTimeout(() => $("messageInput")?.focus(), 50);
+    await loadMessages({ markRead: true });
+    if (sheetContext && sheetContext.messages) renderMessagesSheet();
+  }
+
+  async function sendMessage() {
+    const input = $("messageInput");
+    const text = input ? input.value.trim() : "";
+    if (!text) return toast("Enter a message first.");
+    if (messagesSending) return;
+    messagesSending = true;
+    renderMessagesSheet();
+    try {
+      const response = await fetch("/api/messages", { method: "POST", cache: "no-store", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: text }) });
+      if (response.status === 401 || response.status === 403) return redirectForAccess(response.status);
+      if (!response.ok) throw new Error(`Send failed (${response.status})`);
+      messagesSending = false;
+      await loadMessages();
+      if (sheetContext && sheetContext.messages) renderMessagesSheet();
+    } catch (error) {
+      messagesSending = false;
+      renderMessagesSheet();
+      toast("Could not send that message. Try again.");
+    }
+  }
+
   function saveExercise() {
     if (!sheetContext) return;
     const workout = workoutById(sheetContext.workoutId);
@@ -793,7 +882,7 @@
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = url; link.download = `reacher-build-backup-${L.localISO()}.json`;
+    link.href = url; link.download = `the-rebuild-backup-${L.localISO()}.json`;
     document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
     toast("Backup downloaded");
   }
@@ -807,7 +896,7 @@
       state = normalizeState(data);
       saveState("Backup restored");
       refresh();
-    } catch (error) { toast("That is not a valid Reacher Build backup."); }
+    } catch (error) { toast("That is not a valid Rebuild backup."); }
     event.target.value = "";
   }
 
@@ -823,6 +912,8 @@
     else if (action === "select-workout") { state.program.selectedWorkout = button.dataset.id; saveState(); refresh(); }
     else if (action === "open-exercise") openExercise(button.dataset.workout, button.dataset.exercise);
     else if (action === "close-sheet") closeSheet();
+    else if (action === "open-messages") openMessages();
+    else if (action === "send-message") sendMessage();
     else if (action === "save-exercise") saveExercise();
     else if (action === "delete-exercise-log") deleteExerciseLog();
     else if (action === "workout-timer-toggle") toggleWorkoutTimer();
@@ -848,7 +939,7 @@
   });
 
   window.addEventListener("pagehide", () => {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (error) { console.warn("Local progress save failed", error); }
+    try { if (STORAGE_KEY) localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (error) { console.warn("Local progress save failed", error); }
     void syncRemoteState(true);
   });
 
@@ -858,12 +949,17 @@
         protectedJson("/api/program"),
         protectedJson("/api/state")
       ]);
+      void loadMessages();
       PROGRAM = program;
+      // Supabase is authoritative: an account with saved remote progress always wins over
+      // whatever sits in this browser's local storage, so a device that was previously used
+      // by a different account (or reused after a password reset) can never surface stale
+      // local data for this session. Local storage is only a same-account offline cache and
+      // an upload buffer for the brief window before the first sync completes.
       const local = loadState();
       state = remote.state ? normalizeState(remote.state) : local;
       remoteSyncReady = true;
-      if (!remote.state && localStorage.getItem(STORAGE_KEY)) scheduleRemoteSync();
-      if (localStorage.getItem(OLD_KEY) && !localStorage.getItem(STORAGE_KEY)) console.info("A previous Rebuild tracker save exists under a separate data format and was left untouched.");
+      if (!remote.state && STORAGE_KEY && localStorage.getItem(STORAGE_KEY)) scheduleRemoteSync();
       refresh();
       updateTimerDisplays();
     } catch (error) {
