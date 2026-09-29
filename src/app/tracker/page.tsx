@@ -57,10 +57,10 @@ export default async function TrackerPage() {
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3v8a2.5 2.5 0 0 0 5 0V3M7.5 11v10"/><path d="M17 3c-1.7 1.6-2.5 3.6-2.5 6s.8 3 2.5 3 2.5-.6 2.5-3-.8-4.4-2.5-6ZM17 12v9"/></svg><span>Fuel</span>
           </button>
           <button type="button" data-tab="body">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.5 9 11l4 4 8-8.5"/><path d="M15 6.5h6v6"/></svg><span>Check-in</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.5 9 11l4 4 8-8.5"/><path d="M15 6.5h6v6"/></svg><span>Progress</span>
           </button>
           <button type="button" data-tab="plan">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h11l4 4V20.5H5z"/><path d="M15.5 3.5V8H20M8.5 12.5h7M8.5 16.5h7"/></svg><span>36 Weeks</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h11l4 4V20.5H5z"/><path d="M15.5 3.5V8H20M8.5 12.5h7M8.5 16.5h7"/></svg><span>Plan</span>
           </button>
         </nav>
       </div>
