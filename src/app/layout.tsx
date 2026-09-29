@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Barlow_Condensed, Inter } from "next/font/google";
+import { Anton, Inter } from "next/font/google";
 import { headers } from "next/headers";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const barlow = Barlow_Condensed({ subsets: ["latin"], weight: ["600", "700", "800"], variable: "--font-condensed", display: "swap" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-body", display: "swap" });
+const anton = Anton({ subsets: ["latin"], weight: "400", variable: "--font-display", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
   const headerStore = await headers();
@@ -30,8 +30,8 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#121310" };
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#07111C" };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en" className={`${inter.variable} ${barlow.variable}`}><body>{children}</body></html>;
+  return <html lang="en" className={`${inter.variable} ${anton.variable}`}><body>{children}</body></html>;
 }
